@@ -43,7 +43,7 @@ variable "enable_nat_gateway" {
 
 variable "vpc_name" {
 
-description = "Name of the VPC"
+  description = "Name of the VPC"
   type        = string
 }
 
@@ -59,7 +59,7 @@ variable "cluster_name" {
 
 variable "env" {
 
-    description = "EKS Cluster var name"
+  description = "EKS Cluster var name"
   type        = string
-  
+
 }
