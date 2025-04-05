@@ -60,6 +60,7 @@ pipeline {
             steps {
                 echo "Fetching Terraform Output..."
                 sh 'terraform output -json > tf_output.json'
+                archiveArtifacts artifacts: 'tf_outputs.json', fingerprint: true
                 sh 'cat tf_output.json'
                 // You can now parse tf_output.json using a script or pass to next job
             }
