@@ -19,46 +19,61 @@ pipeline {
         }
 
         stage('Terraform Init') {
+            when {
+                expression { return params.ACTION == 'apply' }
+            }
             steps {
                 sh 'terraform init'
             }
         }
 
         stage('Terraform Format Check') {
+            when {
+                expression { return params.ACTION == 'apply' }
+            }
             steps {
                 sh 'terraform fmt -check -recursive'
             }
         }
 
         stage('Terraform Validate') {
+            when {
+                expression { return params.ACTION == 'apply' }
+            }
             steps {
                 sh 'terraform validate'
             }
         }
 
         stage('Terraform Plan & Apply') {
+            when {
+                expression { return params.ACTION == 'apply' }
+            }
             steps {
                 script {
-                    if (params.ACTION == 'apply') {
-                        sh "terraform plan -var-file=${TF_VAR_FILE}"
+                    sh "terraform plan -var-file=${TF_VAR_FILE}"
 
-                        // Approval step after plan
-                        def userInput = input(
-                            id: 'ApplyApproval',
-                            message: "Terraform plan completed. Do you want to proceed with apply?",
-                            ok: 'Apply',
-                            parameters: [
-                                text(name: 'Approval Notes', defaultValue: '', description: 'Optional notes before applying Terraform')
-                            ]
-                        )
+                    def userInput = input(
+                        id: 'ApplyApproval',
+                        message: "Terraform plan completed. Do you want to proceed with apply?",
+                        ok: 'Apply',
+                        parameters: [
+                            text(name: 'Approval Notes', defaultValue: '', description: 'Optional notes before applying Terraform')
+                        ]
+                    )
 
-                        sh "terraform apply -auto-approve -var-file=${TF_VAR_FILE}"
-                    } else if (params.ACTION == 'destroy') {
-                        sh "terraform destroy -auto-approve -var-file=${TF_VAR_FILE}"
-                    } else {
-                        error "Invalid action: ${params.ACTION}"
-                    }
+                    sh "terraform apply -auto-approve -var-file=${TF_VAR_FILE}"
                 }
+            }
+        }
+
+        stage('Terraform Destroy') {
+            when {
+                expression { return params.ACTION == 'destroy' }
+            }
+            steps {
+                sh "terraform init" // still required before destroy
+                sh "terraform destroy -auto-approve -var-file=${TF_VAR_FILE}"
             }
         }
 
@@ -67,7 +82,7 @@ pipeline {
                 expression { return params.ACTION == 'apply' }
             }
             steps {
-                sh 'terraform output  > tf_outputs.json'
+                sh 'terraform output -json > tf_outputs.json'
                 archiveArtifacts artifacts: 'tf_outputs.json', fingerprint: true
             }
         }
@@ -97,4 +112,3 @@ pipeline {
         }
     }
 }
-
