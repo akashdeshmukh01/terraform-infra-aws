@@ -2,19 +2,17 @@ pipeline {
     agent any
 
     parameters {
-        choice(
-            name: 'ENVIRONMENT',
-            choices: ['dev', 'prod'],
-            description: 'Select the environment to deploy to'
-        )
+        choice(name: 'ACTION', choices: ['apply', 'destroy'], description: 'Select Terraform action')
+        choice(name: 'ENV', choices: ['dev', 'prod'], description: 'Environment to target')
+        booleanParam(name: 'CLEANUP_LOCAL_FILES', defaultValue: false, description: 'Clean up .terraform and .tfstate files after destroy')
     }
 
     environment {
-        TF_VAR_ENV = "${params.ENVIRONMENT}"
+        TF_VAR_FILE = "${params.ENV}.tfvars"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
                 checkout scm
             }
@@ -26,51 +24,43 @@ pipeline {
             }
         }
 
-        stage('Terraform Format Check') {
+        stage('Terraform Action') {
             steps {
-                sh 'terraform fmt -check'
+                script {
+                    if (params.ACTION == 'apply') {
+                        sh "terraform plan -var-file=${TF_VAR_FILE}"
+                        sh "terraform apply -auto-approve -var-file=${TF_VAR_FILE}"
+                    } else if (params.ACTION == 'destroy') {
+                        sh "terraform destroy -auto-approve -var-file=${TF_VAR_FILE}"
+                    } else {
+                        error "Invalid action: ${params.ACTION}"
+                    }
+                }
             }
         }
 
-        stage('Terraform Validate') {
-            steps {
-                sh 'terraform validate'
+        stage('Cleanup Local Files') {
+            when {
+                allOf {
+                    expression { params.ACTION == 'destroy' }
+                    expression { params.CLEANUP_LOCAL_FILES }
+                }
             }
-        }
-
-        stage('Terraform Plan') {
             steps {
-                sh 'terraform plan -var-file=environments/${TF_VAR_ENV}/${TF_VAR_ENV}.tfvars -out=tfplan'
-            }
-        }
-
-        stage('Approve Apply') {
-            steps {
-                input message: "Apply changes to ${TF_VAR_ENV} environment?"
-            }
-        }
-
-        stage('Terraform Apply') {
-            steps {
-                sh 'terraform apply -auto-approve tfplan'
-            }
-        }
-
-        stage('Terraform Output') {
-            steps {
-                echo "Fetching Terraform Output..."
-                sh 'terraform output -json > tf_output.json'
-                archiveArtifacts artifacts: 'tf_outputs.json', fingerprint: true
-                sh 'cat tf_output.json'
-                // You can now parse tf_output.json using a script or pass to next job
+                sh '''
+                    echo "Cleaning up local Terraform files..."
+                    rm -rf .terraform terraform.tfstate terraform.tfstate.backup
+                '''
             }
         }
     }
 
     post {
-        always {
-            echo 'Cleaning up...'
-            sh 'rm -f tfplan || true'
+        success {
+            echo "Terraform ${params.ACTION} completed successfully."
+        }
+        failure {
+            echo "Terraform ${params.ACTION} failed."
         }
     }
 }
