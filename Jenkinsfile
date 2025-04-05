@@ -67,7 +67,7 @@ pipeline {
                 expression { return params.ACTION == 'apply' }
             }
             steps {
-                sh 'terraform output -json > tf_outputs.json'
+                sh 'terraform output  > tf_outputs.json'
                 archiveArtifacts artifacts: 'tf_outputs.json', fingerprint: true
             }
         }
