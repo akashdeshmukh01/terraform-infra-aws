@@ -18,6 +18,18 @@ pipeline {
             }
         }
 
+        stage('Terraform Format Check') {
+            steps {
+                sh 'terraform fmt -check -recursive'
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                sh "terraform validate"
+            }
+        }
+
         stage('Terraform Init') {
             steps {
                 sh 'terraform init'
@@ -36,6 +48,16 @@ pipeline {
                         error "Invalid action: ${params.ACTION}"
                     }
                 }
+            }
+        }
+
+        stage('Export Terraform Output (JSON)') {
+            when {
+                expression { return params.ACTION == 'apply' }
+            }
+            steps {
+                sh 'terraform output -json > tf_outputs.json'
+                archiveArtifacts artifacts: 'tf_outputs.json', fingerprint: true
             }
         }
 
