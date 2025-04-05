@@ -36,11 +36,22 @@ pipeline {
             }
         }
 
-        stage('Terraform Action') {
+        stage('Terraform Plan & Apply') {
             steps {
                 script {
                     if (params.ACTION == 'apply') {
                         sh "terraform plan -var-file=${TF_VAR_FILE}"
+
+                        // Approval step after plan
+                        def userInput = input(
+                            id: 'ApplyApproval',
+                            message: "Terraform plan completed. Do you want to proceed with apply?",
+                            ok: 'Apply',
+                            parameters: [
+                                text(name: 'Approval Notes', defaultValue: '', description: 'Optional notes before applying Terraform')
+                            ]
+                        )
+
                         sh "terraform apply -auto-approve -var-file=${TF_VAR_FILE}"
                     } else if (params.ACTION == 'destroy') {
                         sh "terraform destroy -auto-approve -var-file=${TF_VAR_FILE}"
