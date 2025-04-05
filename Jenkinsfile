@@ -18,6 +18,12 @@ pipeline {
             }
         }
 
+        stage('Terraform Init') {
+            steps {
+                sh 'terraform init'
+            }
+        }
+
         stage('Terraform Format Check') {
             steps {
                 sh 'terraform fmt -check -recursive'
@@ -26,13 +32,7 @@ pipeline {
 
         stage('Terraform Validate') {
             steps {
-                sh "terraform validate"
-            }
-        }
-
-        stage('Terraform Init') {
-            steps {
-                sh 'terraform init'
+                sh 'terraform validate'
             }
         }
 
