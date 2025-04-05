@@ -2,80 +2,74 @@ pipeline {
     agent any
 
     parameters {
-        choice(name: 'TF_ENV', choices: ['dev', 'prod'], description: 'Select environment to deploy')
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'prod'],
+            description: 'Select the environment to deploy to'
+        )
     }
 
     environment {
-        AWS_REGION = 'us-east-1'
+        TF_VAR_ENV = "${params.ENVIRONMENT}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "Checking out code..."
                 checkout scm
             }
         }
 
         stage('Terraform Init') {
             steps {
-                echo "Initializing Terraform..."
                 sh 'terraform init'
             }
         }
 
-        stage('Terraform Format & Validate') {
+        stage('Terraform Format Check') {
             steps {
-                echo "Formatting and Validating Terraform..."
                 sh 'terraform fmt -check'
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
                 sh 'terraform validate'
             }
         }
 
         stage('Terraform Plan') {
             steps {
-                echo "Running Terraform Plan..."
-                sh "terraform plan -var-file=${params.TF_ENV}.tfvars -out=tfplan"
+                sh 'terraform plan -var-file=environments/${TF_VAR_ENV}/${TF_VAR_ENV}.tfvars -out=tfplan'
             }
         }
 
-        stage('Approval') {
+        stage('Approve Apply') {
             steps {
-                script {
-                    input(
-                        message: "Do you want to apply the Terraform plan?",
-                        ok: "Yes, apply it",
-                        submitter: 'akash' // Optional: restrict to specific user
-                    )
-                }
+                input message: "Apply changes to ${TF_VAR_ENV} environment?"
             }
         }
 
         stage('Terraform Apply') {
             steps {
-                echo "Applying Terraform Plan..."
                 sh 'terraform apply -auto-approve tfplan'
             }
         }
 
         stage('Terraform Output') {
             steps {
-                echo "Fetching Terraform Outputs..."
-                sh '''
-                    terraform output | tee output.txt
-                    echo "Output saved to output.txt"
-                '''
+                echo "Fetching Terraform Output..."
+                sh 'terraform output -json > tf_output.json'
+                sh 'cat tf_output.json'
+                // You can now parse tf_output.json using a script or pass to next job
             }
         }
     }
 
     post {
-        success {
-            echo "Terraform pipeline completed successfully"
-            archiveArtifacts artifacts: 'output.txt', onlyIfSuccessful: true
-        }
-        failure {
-            echo "Terraform pipeline failed"
+        always {
+            echo 'Cleaning up...'
+            sh 'rm -f tfplan || true'
         }
     }
 }
