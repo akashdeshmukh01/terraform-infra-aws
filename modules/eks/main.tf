@@ -93,7 +93,4 @@ resource "aws_ecr_repository" "nodejs_app" {
   }
 }
 
-output "ecr_repo_url" {
-  value = aws_ecr_repository.nodejs_app.repository_url
-}
 
