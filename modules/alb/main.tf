@@ -1,5 +1,5 @@
 # Create ALB Security Group
-resource "aws_security_group" "alb_sg" { 
+resource "aws_security_group" "alb_sg" {
   name        = "${var.alb_name}-sg"
   description = "Security group for ALB"
   vpc_id      = var.vpc_id
