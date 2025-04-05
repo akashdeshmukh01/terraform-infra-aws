@@ -45,3 +45,7 @@ output "eks_private_subnet_ids" {
   description = "List of private subnet IDs used for EKS"
   value       = var.private_subnet_ids
 }
+
+output "ecr_repo_url" {
+  value = aws_ecr_repository.nodejs_app.repository_url
+}
