@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    parameters {
+        choice(name: 'ENV', choices: ['dev', 'prod'], description: 'Environment to destroy')
+    }
+
+    environment {
+        TF_VAR_FILE = "${params.ENV}.tfvars"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                sh 'terraform init'
+            }
+        }
+
+        stage('Terraform Destroy') {
+            steps {
+                sh "terraform destroy -auto-approve -var-file=${TF_VAR_FILE}"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Infrastructure destroyed successfully."
+        }
+        failure {
+            echo "Terraform destroy failed."
+        }
+    }
+}
+
