@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        TF_VAR_FILE = "${params.ENV}.tfvars"
+        TF_VAR_FILE = "environments/${params.ENV}/${params.ENV}.tfvars"
     }
 
     stages {
