@@ -99,9 +99,9 @@ resource "aws_subnet" "public_1" {
   availability_zone       = "us-east-1a"
   map_public_ip_on_launch = true
   tags = {
-    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/role/elb"                    = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    Name = "public-subnet-1"
+    Name                                        = "public-subnet-1"
   }
 }
 
@@ -111,9 +111,9 @@ resource "aws_subnet" "public_2" {
   availability_zone       = "us-east-1b"
   map_public_ip_on_launch = true
   tags = {
-    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/role/elb"                    = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
-    Name = "public-subnet-2"
+    Name                                        = "public-subnet-2"
   }
 }
 
