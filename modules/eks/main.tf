@@ -94,7 +94,10 @@ resource "aws_ecr_repository" "nodejs_app" {
 }
 
 resource "aws_subnet" "public_1" {
-  ...
+  vpc_id                  = var.vpc_id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1a"
+  map_public_ip_on_launch = true
   tags = {
     "kubernetes.io/role/elb" = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
@@ -103,7 +106,10 @@ resource "aws_subnet" "public_1" {
 }
 
 resource "aws_subnet" "public_2" {
-  ...
+  vpc_id                  = var.vpc_id
+  cidr_block              = "10.0.1.0/24"
+  availability_zone       = "us-east-1b"
+  map_public_ip_on_launch = true
   tags = {
     "kubernetes.io/role/elb" = "1"
     "kubernetes.io/cluster/${var.cluster_name}" = "owned"
@@ -162,5 +168,6 @@ resource "aws_iam_role_policy_attachment" "alb_attach" {
   role       = aws_iam_role.alb_sa_role.name
   policy_arn = aws_iam_policy.alb_controller_policy.arn
 }
+
 
 
