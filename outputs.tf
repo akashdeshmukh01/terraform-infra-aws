@@ -76,3 +76,28 @@ output "alb_target_group_arn" {
   description = "The ARN of the ALB target group"
   value       = module.alb.alb_target_group_arn
 }
+
+output "eks_cluster_security_group_id" {
+  description = "Security group ID of the EKS cluster"
+  value       = module.eks.eks_cluster_security_group_id
+}
+
+output "eks_cluster_oidc_issuer_url" {
+  description = "OIDC issuer URL of the EKS cluster"
+  value       = module.eks.eks_cluster_oidc_issuer_url
+}
+
+output "eks_cluster_role_arn" {
+  description = "IAM Role ARN used by EKS Cluster"
+  value       = module.eks.cluster_role_arn
+}
+
+output "eks_node_group_role_arn" {
+  description = "IAM Role ARN used by the EKS Node Group"
+  value       = module.eks.node_group_role_arn
+}
+
+output "alb_irsa_role_arn" {
+  description = "IAM Role ARN used by ALB controller with IRSA"
+  value       = module.eks.alb_irsa_role_arn
+}

@@ -93,4 +93,74 @@ resource "aws_ecr_repository" "nodejs_app" {
   }
 }
 
+resource "aws_subnet" "public_1" {
+  ...
+  tags = {
+    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    Name = "public-subnet-1"
+  }
+}
+
+resource "aws_subnet" "public_2" {
+  ...
+  tags = {
+    "kubernetes.io/role/elb" = "1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "owned"
+    Name = "public-subnet-2"
+  }
+}
+
+data "aws_eks_cluster" "eks" {
+  name = aws_eks_cluster.eks.name
+}
+
+data "aws_eks_cluster_auth" "eks" {
+  name = aws_eks_cluster.eks.name
+}
+
+data "tls_certificate" "eks" {
+  url = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
+}
+
+resource "aws_iam_openid_connect_provider" "eks" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]
+  url             = data.aws_eks_cluster.eks.identity[0].oidc[0].issuer
+}
+
+data "http" "alb_policy" {
+  url = "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.6.2/docs/install/iam_policy.json"
+}
+
+resource "aws_iam_policy" "alb_controller_policy" {
+  name   = "AWSLoadBalancerControllerIAMPolicy"
+  policy = data.http.alb_policy.response_body
+}
+
+resource "aws_iam_role" "alb_sa_role" {
+  name = "${var.cluster_name}-alb-sa-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.eks.arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "${replace(data.aws_eks_cluster.eks.identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:aws-load-balancer-controller"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "alb_attach" {
+  role       = aws_iam_role.alb_sa_role.name
+  policy_arn = aws_iam_policy.alb_controller_policy.arn
+}
+
 

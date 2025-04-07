@@ -1,51 +1,54 @@
-# Output EKS Cluster ID
-output "eks_cluster_id" {
-  description = "The ID of the EKS cluster"
-  value       = aws_eks_cluster.eks.id
-}
-
-# Output EKS Cluster Name
 output "eks_cluster_name" {
-  description = "The name of the EKS cluster"
+  description = "Name of the EKS Cluster"
   value       = aws_eks_cluster.eks.name
 }
 
-# Output EKS Cluster Endpoint
 output "eks_cluster_endpoint" {
-  description = "The endpoint for EKS cluster API"
+  description = "EKS Cluster endpoint"
   value       = aws_eks_cluster.eks.endpoint
 }
 
-# Output EKS Cluster Certificate Authority Data
 output "eks_cluster_certificate_authority" {
-  description = "The certificate authority data for the cluster"
+  description = "Base64 encoded certificate data required to communicate with the cluster"
   value       = aws_eks_cluster.eks.certificate_authority[0].data
 }
 
-# Output Node Group Name
-output "eks_node_group_name" {
-  description = "The name of the EKS node group"
+output "eks_cluster_oidc_issuer_url" {
+  description = "OIDC issuer URL for the cluster"
+  value       = aws_eks_cluster.eks.identity[0].oidc[0].issuer
+}
+
+output "eks_cluster_security_group_id" {
+  description = "EKS Cluster security group ID"
+  value       = aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id
+}
+
+output "node_group_name" {
+  description = "Name of the Node Group"
   value       = aws_eks_node_group.node_group.node_group_name
 }
 
-# Output Node Group ARN
-output "eks_node_group_arn" {
-  description = "The ARN of the EKS node group"
-  value       = aws_eks_node_group.node_group.arn
+output "node_group_role_arn" {
+  description = "ARN of the IAM role assigned to worker nodes"
+  value       = aws_iam_role.eks_node_role.arn
 }
 
-# Output Node Group Instance Types
-output "eks_node_group_instance_types" {
-  description = "The instance types of the EKS worker nodes"
-  value       = aws_eks_node_group.node_group.instance_types
+output "cluster_role_arn" {
+  description = "IAM role ARN assigned to the EKS cluster"
+  value       = aws_iam_role.eks_cluster_role.arn
 }
 
-# Output Private Subnet IDs (For other modules like ALB)
-output "eks_private_subnet_ids" {
-  description = "List of private subnet IDs used for EKS"
+output "vpc_private_subnet_ids" {
+  description = "List of private subnet IDs used by the EKS cluster"
   value       = var.private_subnet_ids
 }
 
-output "ecr_repo_url" {
-  value = aws_ecr_repository.nodejs_app.repository_url
+output "alb_irsa_role_arn" {
+  description = "IAM role ARN used by ALB controller service account"
+  value       = aws_iam_role.alb_sa_role.arn
+}
+
+output "ecr_repository_url" {
+  description = "ECR repo URL to push the Docker image"
+  value       = aws_ecr_repository.nodejs_app.repository_url
 }
