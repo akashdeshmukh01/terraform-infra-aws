@@ -52,3 +52,24 @@ output "ecr_repository_url" {
   description = "ECR repo URL to push the Docker image"
   value       = aws_ecr_repository.nodejs_app.repository_url
 }
+
+output "eks_cluster_id" {
+  value       = aws_eks_cluster.eks.id
+  description = "EKS Cluster ID"
+}
+
+output "eks_node_group_name" {
+  value       = aws_eks_node_group.node_group.node_group_name
+  description = "EKS Node Group Name"
+}
+
+output "eks_node_group_arn" {
+  value       = aws_eks_node_group.node_group.arn
+  description = "EKS Node Group ARN"
+}
+
+output "eks_node_group_instance_types" {
+  value       = aws_eks_node_group.node_group.instance_types
+  description = "EKS Node Group Instance Types"
+}
+

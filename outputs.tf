@@ -58,7 +58,7 @@ output "eks_node_group_instance_types" {
 # ECR Output from EKS Module
 output "ecr_repo_url" {
   description = "URL of the ECR repository"
-  value       = module.eks.ecr_repo_url
+  value       = module.eks.ecr_repository_url
 }
 
 # ALB Outputs
