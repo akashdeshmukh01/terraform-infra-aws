@@ -11,7 +11,7 @@ vpc_name   = "dev-vpc"
 public_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
 
 # Private Subnets (across 2 availability zones)
-private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
+private_subnets = ["10.0.21.0/24", "10.0.22.0/24"]
 
 # Availability Zones (modify based on your AWS region)
 availability_zones = ["us-east-1a", "us-east-1b"]
